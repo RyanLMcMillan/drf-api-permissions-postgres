@@ -15,8 +15,8 @@ class BookTests(APITestCase):
         testuser1.save()
 
         test_book = Book.objects.create(
-            title="harry potter",
-            author="Rowling",
+            title="percy jackson and the lightning thief",
+            author="Riordan",
             owner=testuser1
         )
         test_book.save()
@@ -31,9 +31,9 @@ class BookTests(APITestCase):
         actual_author = str(book.author)
 
         self.assertEqual(actual_owner, "testuser1")
-        self.assertEqual(actual_title, "harry potter")
+        self.assertEqual(actual_title, "percy jackson")
         self.assertEqual(
-            actual_author, "Rowling"
+            actual_author, "Riordan"
         )
 
     def test_get_book_list(self):
@@ -42,18 +42,45 @@ class BookTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         books = response.data
         self.assertEqual(len(books), 1)
-        self.assertEqual(books[0]["title"], "harry potter")
+        self.assertEqual(books[0]["title"], "percy jackson and the lightning thief")
 
     def test_get_book_by_id(self):
         url = reverse("book_detail", args=(1,))
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         book = response.data
-        self.assertEqual(book["title"], "harry potter")
+        self.assertEqual(book["title"], "percy jackson and the lightning thief")
 
     def test_create_book(self):
         url = reverse("book_list")
-        data = {"owner": 1, "title": "lotr", "author": "tolkien"}
+        data = {"owner": 1, "title": "maze runner", "author": "dashner"}
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        books = Book.objects.all()
+        self.assertEqual(len(books), 2)
+        self.assertEqual(Book.objects.get(id=2).title, "maze runner")
+
+    ##fixed
+    def test_update_book(self):
+        url = reverse("book_detail", args=(1,))
+        data = {
+            "owner": 1,
+            "title": "maze runner",
+            "author": "dashner",
+        }
+        response = self.client.put(url, data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        book = Book.objects.get(id=1)
+        self.assertEqual(book.title, data["title"])
+        self.assertEqual(book.owner.id, data["owner"])
+        self.assertEqual(book.author, data["author"])
+
+    def test_delete_book(self):
+        url = reverse("book_detail", args=(1,))
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        books = Book.objects.all()
+        self.assertEqual(len(books), 0)": 1, "title": "lotr", "author": "tolkien"}
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         books = Book.objects.all()
